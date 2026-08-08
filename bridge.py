@@ -102,4 +102,3 @@ if __name__ == '__main__':
     # a stable ADS route to/from the PLC. It is reachable from the 'web'
     # container via host.docker.internal:5000 (see config.php).
     app.run(host='0.0.0.0', port=5000)
-s
