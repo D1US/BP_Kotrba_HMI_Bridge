@@ -44,9 +44,9 @@ def get_plc():
 @app.route('/position', methods=['GET'])
 def get_position():
     with get_plc() as plc:
-        x = plc.read_by_name(SYM_POS_X, pyads.PLCTYPE_INT)
-        y = plc.read_by_name(SYM_POS_Y, pyads.PLCTYPE_INT)
-        z = plc.read_by_name(SYM_POS_Z, pyads.PLCTYPE_INT)
+        x = plc.read_by_name(SYM_POS_X, pyads.PLCTYPE_LREAL)
+        y = plc.read_by_name(SYM_POS_Y, pyads.PLCTYPE_LREAL)
+        z = plc.read_by_name(SYM_POS_Z, pyads.PLCTYPE_LREAL)
     return jsonify({'x': x, 'y': y, 'z': z})
  
  
