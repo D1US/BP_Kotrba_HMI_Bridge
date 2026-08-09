@@ -44,9 +44,9 @@ def get_plc():
 @app.route('/position', methods=['GET'])
 def get_position():
     with get_plc() as plc:
-        x = plc.read_by_name(SYM_POS_X, pyads.PLCTYPE_INT)
-        y = plc.read_by_name(SYM_POS_Y, pyads.PLCTYPE_INT)
-        z = plc.read_by_name(SYM_POS_Z, pyads.PLCTYPE_INT)
+        x = plc.read_by_name(SYM_POS_X, pyads.PLCTYPE_LREAL)
+        y = plc.read_by_name(SYM_POS_Y, pyads.PLCTYPE_LREAL)
+        z = plc.read_by_name(SYM_POS_Z, pyads.PLCTYPE_LREAL)
     return jsonify({'x': x, 'y': y, 'z': z})
  
  
@@ -72,12 +72,13 @@ def set_mode():
 def send_command():
     button = request.args.get('button')
     symbol_map = {'start': SYM_START, 'stop': SYM_STOP}
+    state = request.args.get('state')
  
     if button not in symbol_map:
         return 'Invalid button', 400
  
     with get_plc() as plc:
-        plc.write_by_name(symbol_map[button], True, pyads.PLCTYPE_BOOL)
+        plc.write_by_name(symbol_map[button], state == '1', pyads.PLCTYPE_BOOL)
     return 'OK'
  
  
