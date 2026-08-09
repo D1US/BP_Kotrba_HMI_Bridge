@@ -17,9 +17,7 @@ PLC_AMS_NET_ID = '5.13.228.76.1.1'      # e.g. '5.1.204.10.1.1'
 PLC_IP_ADDRESS = '192.168.0.10'       # the PLC's real IP on your network
 PLC_PORT = 801  # TwinCAT 2 PLC runtime port (801 = first runtime instance)
  
-# ===== PLC symbol names (from your TwinCAT project) =====
-# All variables live in the GVL global variable list, so every symbol
-# needs the "GVL." prefix for ADS symbolic lookup to find them.
+# PLC Symbol Names
 SYM_START = '.BSTART'
 SYM_STOP = '.BSTOP'
 SYM_MODE = '.BMODE'
@@ -71,11 +69,11 @@ def set_mode():
 @app.route('/command', methods=['POST'])
 def send_command():
     button = request.args.get('button')
-    symbol_map = {'start': SYM_START, 'stop': SYM_STOP}
     state = request.args.get('state')
+    symbol_map = {'start': SYM_START, 'stop': SYM_STOP}
  
-    if button not in symbol_map:
-        return 'Invalid button', 400
+    if button not in symbol_map or state not in ('0', '1'):
+        return 'Invalid parameters', 400
  
     with get_plc() as plc:
         plc.write_by_name(symbol_map[button], state == '1', pyads.PLCTYPE_BOOL)
