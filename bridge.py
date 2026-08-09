@@ -71,6 +71,7 @@ def send_command():
     button = request.args.get('button')
     state = request.args.get('state')
     symbol_map = {'start': SYM_START, 'stop': SYM_STOP}
+    state = request.args.get('state')
  
     if button not in symbol_map or state not in ('0', '1'):
         return 'Invalid parameters', 400
