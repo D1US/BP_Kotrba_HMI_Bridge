@@ -20,21 +20,21 @@ PLC_PORT = 801  # TwinCAT 2 PLC runtime port (801 = first runtime instance)
 # ===== PLC symbol names (from your TwinCAT project) =====
 # All variables live in the GVL global variable list, so every symbol
 # needs the "GVL." prefix for ADS symbolic lookup to find them.
-SYM_START = '.BSTART'
-SYM_STOP = '.BSTOP'
-SYM_MODE = '.BMODE'
+SYM_START = 'GVL.BSTART'
+SYM_STOP = 'GVL.BSTOP'
+SYM_MODE = 'GVL.BMODE'
 
-SYM_POS_X = '.FPOS_X'
-SYM_POS_Y = '.FPOS_Y'
-SYM_POS_Z = '.FPOS_Z'
+SYM_POS_X = 'GVL.FPOS_X'
+SYM_POS_Y = 'GVL.FPOS_Y'
+SYM_POS_Z = 'GVL.FPOS_Z'
 
 JOG_SYMBOLS = {
-    ('x', 'plus'): '.BJOG_X_PLUS',
-    ('x', 'minus'): '.BJOG_X_MINUS',
-    ('y', 'plus'): '.BJOG_Y_PLUS',
-    ('y', 'minus'): '.BJOG_Y_MINUS',
-    ('z', 'plus'): '.BJOG_Z_PLUS',
-    ('z', 'minus'): '.BJOG_Z_MINUS',
+    ('x', 'plus'): 'GVL.BJOG_X_PLUS',
+    ('x', 'minus'): 'GVL.BJOG_X_MINUS',
+    ('y', 'plus'): 'GVL.BJOG_Y_PLUS',
+    ('y', 'minus'): 'GVL.BJOG_Y_MINUS',
+    ('z', 'plus'): 'GVL.BJOG_Z_PLUS',
+    ('z', 'minus'): 'GVL.BJOG_Z_MINUS',
 }
  
  
@@ -44,9 +44,9 @@ def get_plc():
 @app.route('/position', methods=['GET'])
 def get_position():
     with get_plc() as plc:
-        x = plc.read_by_name(SYM_POS_X, pyads.PLCTYPE_LREAL)
-        y = plc.read_by_name(SYM_POS_Y, pyads.PLCTYPE_LREAL)
-        z = plc.read_by_name(SYM_POS_Z, pyads.PLCTYPE_LREAL)
+        x = plc.read_by_name(SYM_POS_X, pyads.PLCTYPE_REAL)
+        y = plc.read_by_name(SYM_POS_Y, pyads.PLCTYPE_REAL)
+        z = plc.read_by_name(SYM_POS_Z, pyads.PLCTYPE_REAL)
     return jsonify({'x': x, 'y': y, 'z': z})
  
  
@@ -71,13 +71,14 @@ def set_mode():
 @app.route('/command', methods=['POST'])
 def send_command():
     button = request.args.get('button')
+    state = request.args.get('state')
     symbol_map = {'start': SYM_START, 'stop': SYM_STOP}
  
-    if button not in symbol_map:
-        return 'Invalid button', 400
+    if button not in symbol_map or state not in ('0', '1'):
+        return 'Invalid parameters', 400
  
     with get_plc() as plc:
-        plc.write_by_name(symbol_map[button], True, pyads.PLCTYPE_BOOL)
+        plc.write_by_name(symbol_map[button], state == '1', pyads.PLCTYPE_BOOL)
     return 'OK'
  
  
