@@ -34,6 +34,27 @@ JOG_SYMBOLS = {
     ('z', 'plus'): '.BJOG_Z_PLUS',
     ('z', 'minus'): '.BJOG_Z_MINUS',
 }
+
+# Per-axis toggle button next to the X/Y/Z labels in Manual mode.
+# TODO: replace these with the real PLC symbol names once that's decided -
+# these are just placeholders so the frontend/bridge wiring works end to end.
+AXIS_TOGGLE_SYMBOLS = {
+    'x': '.BAXIS_X_ENABLE',
+    'y': '.BAXIS_Y_ENABLE',
+    'z': '.BAXIS_Z_ENABLE',
+}
+
+# Per-axis Reset/Stop buttons under the jog +/- controls in Manual mode.
+# Same press-and-hold behaviour as jog. TODO: replace with real PLC symbol
+# names once that's decided - these are placeholders for now.
+AXIS_ACTION_SYMBOLS = {
+    ('x', 'reset'): '.BAXIS_X_RESET',
+    ('x', 'stop'): '.BAXIS_X_STOP',
+    ('y', 'reset'): '.BAXIS_Y_RESET',
+    ('y', 'stop'): '.BAXIS_Y_STOP',
+    ('z', 'reset'): '.BAXIS_Z_RESET',
+    ('z', 'stop'): '.BAXIS_Z_STOP',
+}
  
  
 def get_plc():
@@ -80,6 +101,47 @@ def send_command():
     return 'OK'
  
  
+@app.route('/axis', methods=['GET'])
+def get_axis():
+    with get_plc() as plc:
+        x = plc.read_by_name(AXIS_TOGGLE_SYMBOLS['x'], pyads.PLCTYPE_BOOL)
+        y = plc.read_by_name(AXIS_TOGGLE_SYMBOLS['y'], pyads.PLCTYPE_BOOL)
+        z = plc.read_by_name(AXIS_TOGGLE_SYMBOLS['z'], pyads.PLCTYPE_BOOL)
+    return jsonify({
+        'x': '1' if x else '0',
+        'y': '1' if y else '0',
+        'z': '1' if z else '0',
+    })
+
+
+@app.route('/axis', methods=['POST'])
+def set_axis():
+    axis = request.args.get('axis')
+    value = request.args.get('value')
+
+    if axis not in AXIS_TOGGLE_SYMBOLS or value not in ('0', '1'):
+        return 'Invalid parameters', 400
+
+    with get_plc() as plc:
+        plc.write_by_name(AXIS_TOGGLE_SYMBOLS[axis], value == '1', pyads.PLCTYPE_BOOL)
+    return 'OK'
+
+
+@app.route('/axis_action', methods=['POST'])
+def axis_action():
+    axis = request.args.get('axis')
+    action = request.args.get('action')
+    state = request.args.get('state')
+
+    key = (axis, action)
+    if key not in AXIS_ACTION_SYMBOLS or state not in ('0', '1'):
+        return 'Invalid parameters', 400
+
+    with get_plc() as plc:
+        plc.write_by_name(AXIS_ACTION_SYMBOLS[key], state == '1', pyads.PLCTYPE_BOOL)
+    return 'OK'
+
+
 @app.route('/jog', methods=['POST'])
 def jog():
     axis = request.args.get('axis')
