@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import pyads
+import time
  
 app = Flask(__name__)
  
@@ -25,6 +26,20 @@ SYM_MODE = '.BMODE'
 SYM_POS_X = '.FPOS_X'
 SYM_POS_Y = '.FPOS_Y'
 SYM_POS_Z = '.FPOS_Z'
+
+# Clear Log button. The PLC owns the actual log file on the IPC, so this is
+# a rising-edge pulse (True then False) rather than a plain state write -
+# the PLC watches for the edge and clears its own log when it sees one.
+# TODO: replace with the real PLC symbol name once that's decided.
+SYM_CLEAR_LOG = '.BCLEAR_LOG'
+
+# Writable machine settings shown in the Settings drawer (LREAL values).
+# TODO: replace these with the real PLC symbol names once that's decided -
+# these are just placeholders so the frontend/bridge wiring works end to end.
+SETTINGS_SYMBOLS = {
+    'thickness': '.FSET_MATERIAL_THICKNESS',
+    'speed': '.FSET_SPEED',
+}
 
 JOG_SYMBOLS = {
     ('x', 'plus'): '.BJOG_X_PLUS',
@@ -101,6 +116,44 @@ def send_command():
     return 'OK'
  
  
+@app.route('/clear_log', methods=['POST'])
+def clear_log():
+    with get_plc() as plc:
+        plc.write_by_name(SYM_CLEAR_LOG, True, pyads.PLCTYPE_BOOL)
+        time.sleep(0.2)  # brief pulse so the PLC can edge-detect it
+        plc.write_by_name(SYM_CLEAR_LOG, False, pyads.PLCTYPE_BOOL)
+    return 'OK'
+ 
+ 
+@app.route('/settings', methods=['GET'])
+def get_settings():
+    with get_plc() as plc:
+        thickness = plc.read_by_name(SETTINGS_SYMBOLS['thickness'], pyads.PLCTYPE_LREAL)
+        speed = plc.read_by_name(SETTINGS_SYMBOLS['speed'], pyads.PLCTYPE_LREAL)
+    return jsonify({'thickness': thickness, 'speed': speed})
+
+
+@app.route('/settings', methods=['POST'])
+def set_settings():
+    key = request.args.get('key')
+    value = request.args.get('value')
+
+    if key not in SETTINGS_SYMBOLS:
+        return 'Invalid parameters', 400
+
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return 'Invalid parameters', 400
+
+    if value < 0:
+        return 'Invalid parameters', 400
+
+    with get_plc() as plc:
+        plc.write_by_name(SETTINGS_SYMBOLS[key], value, pyads.PLCTYPE_LREAL)
+    return 'OK'
+
+
 @app.route('/axis', methods=['GET'])
 def get_axis():
     with get_plc() as plc:
