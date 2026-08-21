@@ -4,19 +4,15 @@ import time
  
 app = Flask(__name__)
  
-# ===== Local AMS Net ID (this Pi/bridge's identity on the ADS network) =====
-# TODO: set this to match exactly what you configured as the route's AMS Net ID
-# on the TwinCAT side. Convention: Pi's real IP + ".1.1"
-# e.g. if the Pi's IP is 192.168.1.50, this would be '192.168.1.50.1.1'
+# Local AMS Net ID
 LOCAL_AMS_NET_ID = '192.168.0.20.1.1'
  
 pyads.set_local_address(LOCAL_AMS_NET_ID)
  
-# ===== ADS connection settings =====
-# TODO: replace both with your real PLC's values from TwinCAT System Manager
-PLC_AMS_NET_ID = '5.13.228.76.1.1'      # e.g. '5.1.204.10.1.1'
-PLC_IP_ADDRESS = '192.168.0.10'       # the PLC's real IP on your network
-PLC_PORT = 801  # TwinCAT 2 PLC runtime port (801 = first runtime instance)
+# ADS connection settings 
+PLC_AMS_NET_ID = '5.13.228.76.1.1'     
+PLC_IP_ADDRESS = '192.168.0.10'      
+PLC_PORT = 801 
  
 # PLC Symbol Names
 SYM_START = '.BSTART'
@@ -27,15 +23,8 @@ SYM_POS_X = '.FPOS_X'
 SYM_POS_Y = '.FPOS_Y'
 SYM_POS_Z = '.FPOS_Z'
 
-# Clear Log button. The PLC owns the actual log file on the IPC, so this is
-# a rising-edge pulse (True then False) rather than a plain state write -
-# the PLC watches for the edge and clears its own log when it sees one.
-# TODO: replace with the real PLC symbol name once that's decided.
 SYM_CLEAR_LOG = '.BCLEAR_LOG'
 
-# Writable machine settings shown in the Settings drawer (LREAL values).
-# TODO: replace these with the real PLC symbol names once that's decided -
-# these are just placeholders so the frontend/bridge wiring works end to end.
 SETTINGS_SYMBOLS = {
     'thickness': '.FSET_MATERIAL_THICKNESS',
     'speed': '.FSET_SPEED',
@@ -50,18 +39,13 @@ JOG_SYMBOLS = {
     ('z', 'minus'): '.BJOG_Z_MINUS',
 }
 
-# Per-axis toggle button next to the X/Y/Z labels in Manual mode.
-# TODO: replace these with the real PLC symbol names once that's decided -
-# these are just placeholders so the frontend/bridge wiring works end to end.
 AXIS_TOGGLE_SYMBOLS = {
     'x': '.BAXIS_X_ENABLE',
     'y': '.BAXIS_Y_ENABLE',
     'z': '.BAXIS_Z_ENABLE',
 }
 
-# Per-axis Reset/Stop buttons under the jog +/- controls in Manual mode.
-# Same press-and-hold behaviour as jog. TODO: replace with real PLC symbol
-# names once that's decided - these are placeholders for now.
+
 AXIS_ACTION_SYMBOLS = {
     ('x', 'reset'): '.BAXIS_X_RESET',
     ('x', 'stop'): '.BAXIS_X_STOP',
@@ -74,7 +58,8 @@ AXIS_ACTION_SYMBOLS = {
  
 def get_plc():
     return pyads.Connection(PLC_AMS_NET_ID, PLC_PORT, PLC_IP_ADDRESS)
-  
+
+# Position
 @app.route('/position', methods=['GET'])
 def get_position():
     with get_plc() as plc:
@@ -83,7 +68,8 @@ def get_position():
         z = plc.read_by_name(SYM_POS_Z, pyads.PLCTYPE_LREAL)
     return jsonify({'x': x, 'y': y, 'z': z})
  
- 
+
+# Mode
 @app.route('/mode', methods=['GET'])
 def get_mode():
     with get_plc() as plc:
@@ -101,7 +87,7 @@ def set_mode():
         plc.write_by_name(SYM_MODE, value == '1', pyads.PLCTYPE_BOOL)
     return 'OK'
  
- 
+# Commands Automat
 @app.route('/command', methods=['POST'])
 def send_command():
     button = request.args.get('button')
@@ -115,16 +101,17 @@ def send_command():
         plc.write_by_name(symbol_map[button], state == '1', pyads.PLCTYPE_BOOL)
     return 'OK'
  
- 
+# Clear Log
 @app.route('/clear_log', methods=['POST'])
 def clear_log():
     with get_plc() as plc:
         plc.write_by_name(SYM_CLEAR_LOG, True, pyads.PLCTYPE_BOOL)
-        time.sleep(0.2)  # brief pulse so the PLC can edge-detect it
+        time.sleep(0.2) 
         plc.write_by_name(SYM_CLEAR_LOG, False, pyads.PLCTYPE_BOOL)
     return 'OK'
  
- 
+
+# Settings 
 @app.route('/settings', methods=['GET'])
 def get_settings():
     with get_plc() as plc:
@@ -154,6 +141,7 @@ def set_settings():
     return 'OK'
 
 
+# Axis
 @app.route('/axis', methods=['GET'])
 def get_axis():
     with get_plc() as plc:
@@ -180,6 +168,7 @@ def set_axis():
     return 'OK'
 
 
+# Axis Action Controls
 @app.route('/axis_action', methods=['POST'])
 def axis_action():
     axis = request.args.get('axis')
@@ -194,7 +183,7 @@ def axis_action():
         plc.write_by_name(AXIS_ACTION_SYMBOLS[key], state == '1', pyads.PLCTYPE_BOOL)
     return 'OK'
 
-
+# Jog Controls
 @app.route('/jog', methods=['POST'])
 def jog():
     axis = request.args.get('axis')
@@ -211,8 +200,4 @@ def jog():
  
  
 if __name__ == '__main__':
-    # This container runs with network_mode: host (see docker-compose.yml),
-    # so it shares the Pi's real network interface directly - required for
-    # a stable ADS route to/from the PLC. It is reachable from the 'web'
-    # container via host.docker.internal:5000 (see config.php).
     app.run(host='0.0.0.0', port=5000)
