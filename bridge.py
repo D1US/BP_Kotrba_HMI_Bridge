@@ -24,34 +24,40 @@ SYM_POS_X = '.FPOS_X'
 SYM_POS_Y = '.FPOS_Y'
 SYM_POS_Z = '.FPOS_Z'
 
+POSITION_SYMBOLS = {
+'x': '.G_POSITION.FPOS_X',
+'y': '.G_POSITION.FPOS_Y',
+'z': '.G_POSITION.FPOS_Z',
+}
+
 SETTINGS_SYMBOLS = {
     'thickness': '.FSET_MATERIAL_THICKNESS',
     'speed': '.FSET_SPEED',
 }
 
 JOG_SYMBOLS = {
-    ('x', 'plus'): '.BJOG_X_PLUS',
-    ('x', 'minus'): '.BJOG_X_MINUS',
-    ('y', 'plus'): '.BJOG_Y_PLUS',
-    ('y', 'minus'): '.BJOG_Y_MINUS',
-    ('z', 'plus'): '.BJOG_Z_PLUS',
-    ('z', 'minus'): '.BJOG_Z_MINUS',
+    ('x', 'plus'): '.G_MANUALCONTROLS.BJOG_X_PLUS',
+    ('x', 'minus'): '.G_MANUALCONTROLS.BJOG_X_MINUS',
+    ('y', 'plus'): '.G_MANUALCONTROLS.BJOG_Y_PLUS',
+    ('y', 'minus'): '.G_MANUALCONTROLS.BJOG_Y_MINUS',
+    ('z', 'plus'): '.G_MANUALCONTROLS.BJOG_Z_PLUS',
+    ('z', 'minus'): '.G_MANUALCONTROLS.BJOG_Z_MINUS',
 }
 
 AXIS_TOGGLE_SYMBOLS = {
-    'x': '.BAXIS_X_ENABLE',
-    'y': '.BAXIS_Y_ENABLE',
-    'z': '.BAXIS_Z_ENABLE',
+    'x': '.G_MANUALCONTROLS.BAXIS_X_ENABLE',
+    'y': '.G_MANUALCONTROLS.BAXIS_Y_ENABLE',
+    'z': '.G_MANUALCONTROLS.BAXIS_Z_ENABLE',
 }
 
 
 AXIS_ACTION_SYMBOLS = {
-    ('x', 'reset'): '.BAXIS_X_RESET',
-    ('x', 'stop'): '.BAXIS_X_STOP',
-    ('y', 'reset'): '.BAXIS_Y_RESET',
-    ('y', 'stop'): '.BAXIS_Y_STOP',
-    ('z', 'reset'): '.BAXIS_Z_RESET',
-    ('z', 'stop'): '.BAXIS_Z_STOP',
+    ('x', 'reset'): '.G_MANUALCONTROLS.BAXIS_X_RESET',
+    ('x', 'stop'): '.G_MANUALCONTROLS.BAXIS_X_STOP',
+    ('y', 'reset'): '.G_MANUALCONTROLS.BAXIS_Y_RESET',
+    ('y', 'stop'): '.G_MANUALCONTROLS.BAXIS_Y_STOP',
+    ('z', 'reset'): '.G_MANUALCONTROLS.BAXIS_Z_RESET',
+    ('z', 'stop'): '.G_MANUALCONTROLS.BAXIS_Z_STOP',
 }
 
 plc_connection = None
@@ -108,9 +114,9 @@ def with_plc(operation):
 @app.route('/position', methods=['GET'])
 def get_position():
     plc = get_plc()
-    x = plc.read_by_name(SYM_POS_X, pyads.PLCTYPE_LREAL)
-    y = plc.read_by_name(SYM_POS_Y, pyads.PLCTYPE_LREAL)
-    z = plc.read_by_name(SYM_POS_Z, pyads.PLCTYPE_LREAL)
+    x = plc.read_by_name(POSITION_SYMBOLS['x'], pyads.PLCTYPE_LREAL)
+    y = plc.read_by_name(POSITION_SYMBOLS['y'], pyads.PLCTYPE_LREAL)
+    z = plc.read_by_name(POSITION_SYMBOLS['z'], pyads.PLCTYPE_LREAL)
     return jsonify({'x': x, 'y': y, 'z': z})
 
 
