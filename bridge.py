@@ -57,38 +57,36 @@ AXIS_ACTION_SYMBOLS = {
     ('z', 'stop'): '.GMANUALCONTROLS.BAXIS_Z_STOP',
 }
 
-plc_connection = None
-plc_lock = threading.Lock()
-
 
 def get_plc():
     return pyads.Connection(PLC_AMS_NET_ID, PLC_PORT, PLC_IP_ADDRESS)
- 
+
 # Position
 @app.route('/position', methods=['GET'])
 def get_position():
     with get_plc() as plc:
-      x = plc.read_by_name(POSITION_SYMBOLS['x'], pyads.PLCTYPE_LREAL)
-      y = plc.read_by_name(POSITION_SYMBOLS['y'], pyads.PLCTYPE_LREAL)
-      z = plc.read_by_name(POSITION_SYMBOLS['z'], pyads.PLCTYPE_LREAL)
+        x = plc.read_by_name(SYM_POS_X, pyads.PLCTYPE_LREAL)
+        y = plc.read_by_name(SYM_POS_Y, pyads.PLCTYPE_LREAL)
+        z = plc.read_by_name(SYM_POS_Z, pyads.PLCTYPE_LREAL)
     return jsonify({'x': x, 'y': y, 'z': z})
-
+ 
 
 # Mode
 @app.route('/mode', methods=['GET'])
 def get_mode():
     with get_plc() as plc:
-       value = plc.read_by_name(SYM_MODE, pyads.PLCTYPE_BOOL)
+        value = plc.read_by_name(SYM_MODE, pyads.PLCTYPE_BOOL)
     return ('1' if value else '0')
+ 
  
 @app.route('/mode', methods=['POST'])
 def set_mode():
     value = request.args.get('value')
     if value not in ('0', '1'):
         return 'Invalid value', 400
-
+ 
     with get_plc() as plc:
-       plc.write_by_name(SYM_MODE, value == '1', pyads.PLCTYPE_BOOL)
+        plc.write_by_name(SYM_MODE, value == '1', pyads.PLCTYPE_BOOL)
     return 'OK'
  
 # Commands Automat
@@ -97,22 +95,32 @@ def send_command():
     button = request.args.get('button')
     state = request.args.get('state')
     symbol_map = {'start': SYM_START, 'stop': SYM_STOP}
-
+ 
     if button not in symbol_map or state not in ('0', '1'):
         return 'Invalid parameters', 400
-
+ 
     with get_plc() as plc:
-       plc.write_by_name(symbol_map[button], state == '1', pyads.PLCTYPE_BOOL)
+        plc.write_by_name(symbol_map[button], state == '1', pyads.PLCTYPE_BOOL)
+    return 'OK'
+ 
+# Clear Log
+@app.route('/clear_log', methods=['POST'])
+def clear_log():
+    with get_plc() as plc:
+        plc.write_by_name(SYM_CLEAR_LOG, True, pyads.PLCTYPE_BOOL)
+        time.sleep(0.2) 
+        plc.write_by_name(SYM_CLEAR_LOG, False, pyads.PLCTYPE_BOOL)
     return 'OK'
  
 
 # Settings 
 @app.route('/settings', methods=['GET'])
 def get_settings():
-    plc = get_plc()
-    thickness = plc.read_by_name(SETTINGS_SYMBOLS['thickness'], pyads.PLCTYPE_LREAL)
-    speed = plc.read_by_name(SETTINGS_SYMBOLS['speed'], pyads.PLCTYPE_LREAL)
+    with get_plc() as plc:
+        thickness = plc.read_by_name(SETTINGS_SYMBOLS['thickness'], pyads.PLCTYPE_LREAL)
+        speed = plc.read_by_name(SETTINGS_SYMBOLS['speed'], pyads.PLCTYPE_LREAL)
     return jsonify({'thickness': thickness, 'speed': speed})
+
 
 @app.route('/settings', methods=['POST'])
 def set_settings():
@@ -131,16 +139,17 @@ def set_settings():
         return 'Invalid parameters', 400
 
     with get_plc() as plc:
-       plc.write_by_name(SETTINGS_SYMBOLS[key], value, pyads.PLCTYPE_LREAL)
+        plc.write_by_name(SETTINGS_SYMBOLS[key], value, pyads.PLCTYPE_LREAL)
     return 'OK'
+
 
 # Axis
 @app.route('/axis', methods=['GET'])
 def get_axis():
     with get_plc() as plc:
-       x = plc.read_by_name(AXIS_TOGGLE_SYMBOLS['x'], pyads.PLCTYPE_BOOL)
-       y = plc.read_by_name(AXIS_TOGGLE_SYMBOLS['y'], pyads.PLCTYPE_BOOL)
-       z = plc.read_by_name(AXIS_TOGGLE_SYMBOLS['z'], pyads.PLCTYPE_BOOL)
+        x = plc.read_by_name(AXIS_TOGGLE_SYMBOLS['x'], pyads.PLCTYPE_BOOL)
+        y = plc.read_by_name(AXIS_TOGGLE_SYMBOLS['y'], pyads.PLCTYPE_BOOL)
+        z = plc.read_by_name(AXIS_TOGGLE_SYMBOLS['z'], pyads.PLCTYPE_BOOL)
     return jsonify({
         'x': '1' if x else '0',
         'y': '1' if y else '0',
@@ -157,7 +166,7 @@ def set_axis():
         return 'Invalid parameters', 400
 
     with get_plc() as plc:
-       plc.write_by_name(AXIS_TOGGLE_SYMBOLS[axis], value == '1', pyads.PLCTYPE_BOOL)
+        plc.write_by_name(AXIS_TOGGLE_SYMBOLS[axis], value == '1', pyads.PLCTYPE_BOOL)
     return 'OK'
 
 
@@ -173,7 +182,7 @@ def axis_action():
         return 'Invalid parameters', 400
 
     with get_plc() as plc:
-      plc.write_by_name(AXIS_ACTION_SYMBOLS[key], state == '1', pyads.PLCTYPE_BOOL)
+        plc.write_by_name(AXIS_ACTION_SYMBOLS[key], state == '1', pyads.PLCTYPE_BOOL)
     return 'OK'
 
 # Jog Controls
@@ -182,13 +191,13 @@ def jog():
     axis = request.args.get('axis')
     direction = request.args.get('dir')
     state = request.args.get('state')
-
+ 
     key = (axis, direction)
     if key not in JOG_SYMBOLS or state not in ('0', '1'):
         return 'Invalid parameters', 400
-
+ 
     with get_plc() as plc:
-       plc.write_by_name(JOG_SYMBOLS[key], state == '1', pyads.PLCTYPE_BOOL)
+        plc.write_by_name(JOG_SYMBOLS[key], state == '1', pyads.PLCTYPE_BOOL)
     return 'OK'
  
  
