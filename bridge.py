@@ -20,8 +20,8 @@ SYM_STOP = '.BSTOP'
 SYM_MODE = '.BMODE'
 
 SYM_POS_X = '.GPOSITION.FPOS_X'
-SYM_POS_Y = '.GPOSITION..FPOS_Y'
-SYM_POS_Z = '.FPOS_Z'
+SYM_POS_Y = '.GPOSITION.FPOS_Y'
+SYM_POS_Z = '.GPOSITION.FPOS_Z'
 
 SYM_CLEAR_LOG = '.BCLEAR_LOG'
 
@@ -32,27 +32,27 @@ SETTINGS_SYMBOLS = {
 
 JOG_SYMBOLS = {
     ('x', 'plus'): '.GMANUALCONTROLS.BJOG_X_PLUS',
-    ('x', 'minus'): '.GMANUALCONTROLS..BJOG_X_MINUS',
-    ('y', 'plus'): '.GMANUALCONTROLS..BJOG_Y_PLUS',
-    ('y', 'minus'): '.GMANUALCONTROLS..BJOG_Y_MINUS',
-    ('z', 'plus'): '.GMANUALCONTROLS..BJOG_Z_PLUS',
-    ('z', 'minus'): '.GMANUALCONTROLS..BJOG_Z_MINUS',
+    ('x', 'minus'): '.GMANUALCONTROLS.BJOG_X_MINUS',
+    ('y', 'plus'): '.GMANUALCONTROLS.BJOG_Y_PLUS',
+    ('y', 'minus'): '.GMANUALCONTROLS.BJOG_Y_MINUS',
+    ('z', 'plus'): '.GMANUALCONTROLS.BJOG_Z_PLUS',
+    ('z', 'minus'): '.GMANUALCONTROLS.BJOG_Z_MINUS',
 }
 
 AXIS_TOGGLE_SYMBOLS = {
-    'x': '.BAXIS_X_ENABLE',
-    'y': '.BAXIS_Y_ENABLE',
-    'z': '.BAXIS_Z_ENABLE',
+    'x': '.GMANUALCONTROLS.BAXIS_X_ENABLE',
+    'y': '.GMANUALCONTROLS.BAXIS_Y_ENABLE',
+    'z': '.GMANUALCONTROLS.BAXIS_Z_ENABLE',
 }
 
 
 AXIS_ACTION_SYMBOLS = {
-    ('x', 'reset'): '.BAXIS_X_RESET',
-    ('x', 'stop'): '.BAXIS_X_STOP',
-    ('y', 'reset'): '.BAXIS_Y_RESET',
-    ('y', 'stop'): '.BAXIS_Y_STOP',
-    ('z', 'reset'): '.BAXIS_Z_RESET',
-    ('z', 'stop'): '.BAXIS_Z_STOP',
+    ('x', 'reset'): '.GMANUALCONTROLS.BAXIS_X_RESET',
+    ('x', 'stop'): '.GMANUALCONTROLS.BAXIS_X_STOP',
+    ('y', 'reset'): '.GMANUALCONTROLS.BAXIS_Y_RESET',
+    ('y', 'stop'): '.GMANUALCONTROLS.BAXIS_Y_STOP',
+    ('z', 'reset'): '.GMANUALCONTROLS.BAXIS_Z_RESET',
+    ('z', 'stop'): '.GMANUALCONTROLS.BAXIS_Z_STOP',
 }
  
  
