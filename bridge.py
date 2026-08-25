@@ -19,8 +19,8 @@ SYM_START = '.BSTART'
 SYM_STOP = '.BSTOP'
 SYM_MODE = '.BMODE'
 
-SYM_POS_X = '.FPOS_X'
-SYM_POS_Y = '.FPOS_Y'
+SYM_POS_X = '.GPOSITION.FPOS_X'
+SYM_POS_Y = '.GPOSITION..FPOS_Y'
 SYM_POS_Z = '.FPOS_Z'
 
 SYM_CLEAR_LOG = '.BCLEAR_LOG'
@@ -31,12 +31,12 @@ SETTINGS_SYMBOLS = {
 }
 
 JOG_SYMBOLS = {
-    ('x', 'plus'): '.BJOG_X_PLUS',
-    ('x', 'minus'): '.BJOG_X_MINUS',
-    ('y', 'plus'): '.BJOG_Y_PLUS',
-    ('y', 'minus'): '.BJOG_Y_MINUS',
-    ('z', 'plus'): '.BJOG_Z_PLUS',
-    ('z', 'minus'): '.BJOG_Z_MINUS',
+    ('x', 'plus'): '.GMANUALCONTROLS.BJOG_X_PLUS',
+    ('x', 'minus'): '.GMANUALCONTROLS..BJOG_X_MINUS',
+    ('y', 'plus'): '.GMANUALCONTROLS..BJOG_Y_PLUS',
+    ('y', 'minus'): '.GMANUALCONTROLS..BJOG_Y_MINUS',
+    ('z', 'plus'): '.GMANUALCONTROLS..BJOG_Z_PLUS',
+    ('z', 'minus'): '.GMANUALCONTROLS..BJOG_Z_MINUS',
 }
 
 AXIS_TOGGLE_SYMBOLS = {
