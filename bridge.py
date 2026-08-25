@@ -60,7 +60,11 @@ AXIS_ACTION_SYMBOLS = {
 plc_connection = None
 plc_lock = threading.Lock()
 
+
 def get_plc():
+    return pyads.Connection(PLC_AMS_NET_ID, PLC_PORT, PLC_IP_ADDRESS)
+ 
+def get_plc2():
     """
     Return a shared ADS connection, (re)opening it if needed.
     Uses a lock to avoid races between threads.
